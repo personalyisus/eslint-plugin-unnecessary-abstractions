@@ -25,7 +25,14 @@ module.exports = {
         if (node.parent.type === "ReturnStatement" && functionAncestor) {
           const parameters = functionAncestor.params;
 
+          const { body: blockStatement } = functionAncestor;
+
+          const functionBlockElements = blockStatement.body;
+
+          // If all three ternary identifiers are part of the function parameters
+          // report an error
           if (
+            functionBlockElements.length === 1 &&
             parameters.length === 3 &&
             [node.test.name, node.consequent.name, node.alternate.name].some(
               (ternaryIdentifier) => {
@@ -36,7 +43,7 @@ module.exports = {
             context.report({
               node,
               message:
-                "Don't create a function just to wrap a ternary, prefer using the ternary directly instead",
+                "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
             });
           }
         } else if (node.parent.type === "ArrowFunctionExpression") {
@@ -53,7 +60,7 @@ module.exports = {
             context.report({
               node,
               message:
-                "Don't create a function just to wrap a ternary, prefer using the ternary directly instead",
+                "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
             });
           }
         }

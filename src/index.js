@@ -3,7 +3,7 @@ const noUnnecessaryTernaryWrappers = require("./rules/no-unnecessary-ternary-wra
 module.exports = {
   meta: {
     name: "unnecessary-abstractions",
-    version: "0.1.0",
+    version: "0.1.1",
   },
   rules: {
     "no-ternary-wrappers": noUnnecessaryTernaryWrappers,

@@ -51,6 +51,11 @@ ruleTester.run(
       {
         code: "const filterEvens = arr => arr.filter(x => x % 2 === 0);",
       },
+      // Because we do other stuff apart from returning the ternary,
+      // we TECHNICALLY don't have an unnecessary abstraction.
+      {
+        code: "const technicallyValid = (a, b, c) => { var max = Math.max(a, b, c); return a ? b : c;}",
+      },
     ],
     invalid: [
       {
