@@ -1,0 +1,12 @@
+{
+  "name": "tests",
+  "version": "0.1.1",
+  "description": "The tests for the no-unnecessary-abstractions plugin",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "eslint": "^9.6.0",
+    "jest": "^29.7.0"
+  }
+}

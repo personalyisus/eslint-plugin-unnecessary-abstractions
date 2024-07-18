@@ -3,9 +3,6 @@
   "version": "0.1.1",
   "description": "This is a simple ESLint plugin which includes rules to help detect the unnecessary use of certain code abstractions.",
   "exports": "./src/index.js",
-  "scripts": {
-    "test": "jest"
-  },
   "keywords": [
     "eslint",
     "eslint-plugin",
@@ -15,9 +12,5 @@
     "src"
   ],
   "author": "Jesús Marín <marinalvjesus@gmail.com> (personalyisus.io)",
-  "license": "MIT",
-  "devDependencies": {
-    "eslint": "^9.6.0",
-    "jest": "^29.7.0"
-  }
+  "license": "MIT"
 }
