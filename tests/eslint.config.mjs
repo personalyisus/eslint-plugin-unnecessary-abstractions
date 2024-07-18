@@ -1,4 +1,4 @@
-import unnecessaryAbstractions from "./src/index.js";
+import unnecessaryAbstractions from "../src/index.js";
 
 export default [
   {
