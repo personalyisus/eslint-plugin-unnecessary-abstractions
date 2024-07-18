@@ -12,6 +12,15 @@ module.exports = {
 
     return {
       ConditionalExpression(node) {
+        // First check that all the elements of the ternary arent identifiers
+        if (
+          node.test.type !== "Identifier" ||
+          node.consequent.type !== "Identifier" ||
+          node.alternate.type !== "Identifier"
+        ) {
+          return;
+        }
+
         // if node parent is ReturnStatement
         // check that the ancestor  ArrowFunctionExpression or FunctionDeclaration doesnt have the same identifiers
         const functionAncestor = sourceCode
@@ -23,7 +32,7 @@ module.exports = {
               ancestor.type === "FunctionDeclaration",
           );
         if (node.parent.type === "ReturnStatement" && functionAncestor) {
-          const parameters = functionAncestor.params;
+          const parameters = functionAncestor.params.map((param) => param.name);
 
           const { body: blockStatement } = functionAncestor;
 
@@ -34,9 +43,9 @@ module.exports = {
           if (
             functionBlockElements.length === 1 &&
             parameters.length === 3 &&
-            [node.test.name, node.consequent.name, node.alternate.name].some(
+            [node.test.name, node.consequent.name, node.alternate.name].every(
               (ternaryIdentifier) => {
-                return !parameters.includes(ternaryIdentifier);
+                return parameters.includes(ternaryIdentifier);
               },
             )
           ) {
@@ -47,13 +56,13 @@ module.exports = {
             });
           }
         } else if (node.parent.type === "ArrowFunctionExpression") {
-          const parameters = node.parent.params;
+          const parameters = node.parent.params.map((param) => param.name);
 
           if (
             parameters.length === 3 &&
-            [node.test.name, node.consequent.name, node.alternate.name].some(
+            [node.test.name, node.consequent.name, node.alternate.name].every(
               (ternaryIdentifier) => {
-                return !parameters.includes(ternaryIdentifier);
+                return parameters.includes(ternaryIdentifier);
               },
             )
           ) {
