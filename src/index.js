@@ -1,4 +1,4 @@
-const noUnnecessaryTernaryWrappers = require("./rules/no-unnecessary-ternary-wrappers.js");
+const noUnnecessaryTernaryWrappers = require("./rules/no-ternary-wrappers.js");
 
 module.exports = {
   meta: {
