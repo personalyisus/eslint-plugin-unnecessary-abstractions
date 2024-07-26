@@ -3,7 +3,8 @@
   "version": "0.1.1",
   "description": "The tests for the no-unnecessary-abstractions plugin",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:eslint": "node ./no-ternary-wrappers.spec.js"
   },
   "devDependencies": {
     "eslint": "^9.6.0",

@@ -1,5 +1,5 @@
 const { RuleTester } = require("eslint");
-const noUnnecessaryTernaryWrappers = require("../src/rules/no-unnecessary-ternary-wrappers.js");
+const noUnnecessaryTernaryWrappers = require("../src/rules/no-ternary-wrappers.js");
 
 const ruleTester = new RuleTester({
   // Must use at least ecmaVersion 2015 because
@@ -53,19 +53,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
     {
       code: "const technicallyValid = (a, b, c) => { var max = Math.max(a, b, c); return a ? b : c;}",
     },
-    // This should be valid as well since we're not only returning the ternary
-    // but instead we're doing some other stuff
-    // However there should be an option to flag this as a possible error
-    {
-      code: `export const getSwitchTextByCampaignStrategy = (
-  campaignGoalStrategy,
-  campaignGoalType,
-  labels
-)=>
-  typeof _.get(labels, [campaignGoalStrategy]) === 'string'
-    ? _.get(labels, [campaignGoalStrategy], labels.default)
-    : _.get(labels, [campaignGoalStrategy, campaignGoalType], labels.default);`,
-    },
   ],
   invalid: [
     {
@@ -109,8 +96,23 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: 1,
     },
     {
-      name: "(c)normal function without brackets around the return statement",
+      name: "(c)normal function with brackets around the return statement",
       code: `function someFunction(a, b, c) { return c ? b : a}`,
+      errors: 1,
+    },
+    // This should be valid as well since we're not only returning the ternary
+    // but instead we're doing some other stuff
+    // However there should be an option to flag this as a possible error
+    {
+      name: "Some other contrived ternary wrapper",
+      code: `export const someContrivedTernary = (
+  someFirstValue,
+  someEnum,
+  labels
+)=>
+  typeof _.get(labels, [someFirstValue]) === 'string'
+    ? _.get(labels, [someFirstValue], labels.default)
+    : _.get(labels, [someFirstValue, someEnum], labels.default);`,
       errors: 1,
     },
   ],
