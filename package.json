@@ -14,7 +14,7 @@
   "author": "Jesús Marín <marinalvjesus@gmail.com> (personalyisus.io)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/personalyisus/eslint-plugin-unnecessary-abstractions"
+    "url": "git+https://github.com/personalyisus/eslint-plugin-unnecessary-abstractions.git"
   },
   "license": "MIT"
 }
