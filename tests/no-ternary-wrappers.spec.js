@@ -53,8 +53,143 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
     {
       code: "const technicallyValid = (a, b, c) => { var max = Math.max(a, b, c); return a ? b : c;}",
     },
+    // Some extra cases
+    // Valid cases where the rule should not trigger
+
+    // No function abstraction wrapping ternary
+    {
+      code: `const result = isRightHanded ? user.rightHand : user.leftHand;`,
+    },
+
+    // A function that returns a wrapped ternary but uses global variables,
+    // so it should be valid
+    {
+      code: `
+        function chooseHand() {
+          return isRightHanded ? globalRightHand : globalLeftHand;
+        }
+      `,
+    },
+
+    // A function that does not return a ternary
+    {
+      code: `function add(a, b) { return a + b; }`,
+    },
+
+    // A function that returns a wrapped ternary but after doing some significant
+    // alterations of the arguments used for the ternary
+    {
+      code: `
+        function processHandData(rightHanded, rightHand, leftHand) {
+          const processedRightHand = rightHand.trim();
+          const processedLeftHand = leftHand.toLowerCase();
+          return rightHanded ? processedRightHand : processedLeftHand;
+        }
+      `,
+    },
+
+    // Function wrapping a ternary but with other logic
+    {
+      code: `
+        function getHand(rightHanded, rightHand, leftHand) {
+          const hand = rightHanded ? rightHand : leftHand;
+          return hand.toUpperCase();
+        }
+      `,
+    },
   ],
   invalid: [
+    // more cases for completion's sake
+    // Invalid cases where the rule should trigger
+
+    // Simple function wrapping a ternary
+    {
+      code: `
+        function isUserRightHanded(rightHanded, rightHand, leftHand) {
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
+
+    // Arrow function wrapping a ternary
+    {
+      code: `const isUserRightHanded = (rightHanded, rightHand, leftHand) => rightHanded ? rightHand : leftHand;`,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
+
+    // Function declaration wrapping a ternary
+    {
+      code: `
+        function chooseHand(rightHanded, rightHand, leftHand) {
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
+
+    // Function with a console log trying to appear meaningful
+    {
+      code: `
+        function getHandWithLog(rightHanded, rightHand, leftHand) {
+          console.log('Determining hand');
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
+
+    // Function with unused variables trying to bypass the rule
+    {
+      code: `
+        function chooseHandWithExtras(rightHanded, rightHand, leftHand) {
+          const extra = 'extra logic';
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
+
+    // Function indirectly wrapping a ternary with unnecessary indirection
+    {
+      code: `
+        function getChoice(optionA, optionB, condition) {
+          const result = condition ? optionA : optionB;
+          return result;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+        },
+      ],
+    },
     {
       name: "(a) Arrow function with brackets around the return statement",
       code: `const someFunction = (a, b, c) => {return a ? b : c};`,
@@ -106,13 +241,13 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
     {
       name: "Some other contrived ternary wrapper",
       code: `export const someContrivedTernary = (
-  someFirstValue,
-  someEnum,
-  labels
-)=>
-  typeof _.get(labels, [someFirstValue]) === 'string'
-    ? _.get(labels, [someFirstValue], labels.default)
-    : _.get(labels, [someFirstValue, someEnum], labels.default);`,
+                someFirstValue,
+                someEnum,
+                labels
+              )=>
+                typeof _.get(labels, [someFirstValue]) === 'string'
+                  ? _.get(labels, [someFirstValue], labels.default)
+                  : _.get(labels, [someFirstValue, someEnum], labels.default);`,
       errors: 1,
     },
   ],
