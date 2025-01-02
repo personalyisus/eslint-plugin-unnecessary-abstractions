@@ -24,10 +24,9 @@ const checkIfLocalParam = (identifierName, functionNode) => {
     throw Error("The checked node is not a valid function node");
   }
 
-  return functionNode.params.some((param) => {
-    param.name === identifierName;
-  });
+  return functionNode.params.some((param) => param.name === identifierName);
 };
+
 
 module.exports = {
   meta: {
@@ -45,57 +44,89 @@ module.exports = {
       significantOperations: false,
     };
 
-    const blockStatementCheck = (node) => {
+    const functionWithBracketsCheck = (functionNode) => {
       //If there are significant operations then we dont have to check anything
       if (info.significantOperations) return;
 
-      // If the node.parent.type isn't one that
-      // interests us, we don't need to do anything
-      const applicableParentTypes = [
-        "FunctionExpression",
-        "ArrowFunctionExpression",
-        "FunctionDeclaration",
-      ];
-
-      if (!applicableParentTypes.includes(node.parent.type)) {
-        return;
-      }
+      const bodyElements = functionNode.body.body;
 
       // If the only child of the function
       // is a ternary expression, report an error
       if (
-        node.body.length === 1 &&
-        node.body[0].type === "ReturnStatement" &&
-        node.body[0].argument.type === "ConditionalExpression"
+        bodyElements.length === 1 &&
+        bodyElements[0].type === "ReturnStatement" &&
+        bodyElements[0].argument?.type === "ConditionalExpression"
       ) {
-        const ternary = node.body[0].argument;
+        const ternary = bodyElements[0].argument;
+
+        const onlyIdentifiersInTernary = [
+          ternary.test,
+          ternary.consequent,
+          ternary.alternate,
+        ].every((x) => x.type === "Identifier");
+
+        if (!onlyIdentifiersInTernary) return;
+
         const ternaryFromArguments = [
           ternary.test.name,
           ternary.consequent.name,
           ternary.alternate.name,
         ].every((identifierName) =>
-          checkIfLocalParam(identifierName, node.parent),
+          checkIfLocalParam(identifierName, functionNode),
         );
         if (ternaryFromArguments) {
           context.report({
-            node,
+            node: functionNode,
             message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
           });
         }
       }
     };
 
-    const arrowFunctionCheck = (node) => {
+    const arrowFunctionCheck = (functionNode) => {
       //If there are significant operations then we dont have to check anything
       if (info.significantOperations) return;
 
       // If the only child of the arrow function
       // is a ternary expression, report an error
-      if (node.body.type === "ConditionalExpression") {
-        context.report({
-          node,
-          message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
-        });
+      let ternary;
+      if (functionNode.body.type === "ConditionalExpression") {
+        ternary = functionNode.body;
+      }
+
+      if (functionNode.body.type === "BlockStatement") {
+        const bodyElements = functionNode.body.body;
+        if (
+          bodyElements.length === 1 &&
+          bodyElements[0].type === "ReturnStatement" &&
+          bodyElements[0].argument?.type === "ConditionalExpression"
+        ) {
+          ternary = bodyElements[0].argument;
+        }
+      }
+
+      if (ternary) {
+        const onlyIdentifiersInTernary = [
+          ternary.test,
+          ternary.consequent,
+          ternary.alternate,
+        ].every((x) => x.type === "Identifier");
+
+        if (!onlyIdentifiersInTernary) return;
+
+        const ternaryFromArguments = [
+          ternary.test.name,
+          ternary.consequent.name,
+          ternary.alternate.name,
+        ].every((identifierName) =>
+          checkIfLocalParam(identifierName, functionNode),
+        );
+        if (ternaryFromArguments) {
+          context.report({
+            node: functionNode,
+            message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
+          });
+        }
       }
     };
 
@@ -112,8 +143,10 @@ module.exports = {
     const checkIfSignificantOperations = () => {};
 
     return {
-      "BlockStatement:exit": blockStatementCheck,
+      // "BlockStatement:exit": functionWithBracketsCheck,
       "ArrowFunctionExpression:exit": arrowFunctionCheck,
+      "FunctionExpression:exit": functionWithBracketsCheck,
+      "FunctionDeclaration:exit": functionWithBracketsCheck,
     };
   },
 };
