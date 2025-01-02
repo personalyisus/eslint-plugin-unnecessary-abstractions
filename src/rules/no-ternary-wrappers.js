@@ -44,52 +44,12 @@ module.exports = {
       significantOperations: false,
     };
 
-    const functionWithBracketsCheck = (functionNode) => {
+    const arrowOrNormalFunctionCheck = (functionNode) => {
       //If there are significant operations then we dont have to check anything
       if (info.significantOperations) return;
 
-      const bodyElements = functionNode.body.body;
-
-      // If the only child of the function
-      // is a ternary expression, report an error
-      if (
-        bodyElements.length === 1 &&
-        bodyElements[0].type === "ReturnStatement" &&
-        bodyElements[0].argument?.type === "ConditionalExpression"
-      ) {
-        const ternary = bodyElements[0].argument;
-
-        const onlyIdentifiersInTernary = [
-          ternary.test,
-          ternary.consequent,
-          ternary.alternate,
-        ].every((x) => x.type === "Identifier");
-
-        if (!onlyIdentifiersInTernary) return;
-
-        const ternaryFromArguments = [
-          ternary.test.name,
-          ternary.consequent.name,
-          ternary.alternate.name,
-        ].every((identifierName) =>
-          checkIfLocalParam(identifierName, functionNode),
-        );
-        if (ternaryFromArguments) {
-          context.report({
-            node: functionNode,
-            message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
-          });
-        }
-      }
-    };
-
-    const arrowFunctionCheck = (functionNode) => {
-      //If there are significant operations then we dont have to check anything
-      if (info.significantOperations) return;
-
-      // If the only child of the arrow function
-      // is a ternary expression, report an error
       let ternary;
+
       if (functionNode.body.type === "ConditionalExpression") {
         ternary = functionNode.body;
       }
@@ -143,10 +103,9 @@ module.exports = {
     const checkIfSignificantOperations = () => {};
 
     return {
-      // "BlockStatement:exit": functionWithBracketsCheck,
-      "ArrowFunctionExpression:exit": arrowFunctionCheck,
-      "FunctionExpression:exit": functionWithBracketsCheck,
-      "FunctionDeclaration:exit": functionWithBracketsCheck,
+      "ArrowFunctionExpression:exit": arrowOrNormalFunctionCheck,
+      "FunctionExpression:exit": arrowOrNormalFunctionCheck,
+      "FunctionDeclaration:exit": arrowOrNormalFunctionCheck,
     };
   },
 };
