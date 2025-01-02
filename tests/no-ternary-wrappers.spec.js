@@ -61,16 +61,24 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       code: `const result = isRightHanded ? user.rightHand : user.leftHand;`,
     },
 
-    // A function that returns a wrapped ternary but uses global variables,
-    // so it should be valid
+    // Functions that return a wrapped ternary but use externally declared variables,
+    // either partially or completely, so they should be valid
     {
+      name: "valid: completely externally defined symbols ternary",
       code: `
         function chooseHand() {
           return isRightHanded ? globalRightHand : globalLeftHand;
         }
       `,
     },
-
+    {
+      name: "valid: partially externally defined symbols ternary",
+      code: `
+        function chooseHand(localRightHand) {
+          return isRightHanded ? localRightHand : globalLeftHand;
+        }
+      `,
+    },
     // A function that does not return a ternary
     {
       code: `function add(a, b) { return a + b; }`,
@@ -112,7 +120,7 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
@@ -123,7 +131,7 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
@@ -138,11 +146,10 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
-
     // Function with a console log trying to appear meaningful
     {
       code: `
@@ -154,7 +161,7 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
@@ -170,7 +177,7 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
@@ -186,7 +193,7 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       errors: [
         {
           message:
-            "Avoid unnecessary function abstractions that simply wrap a ternary expression.",
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
         },
       ],
     },
