@@ -121,6 +121,58 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
                   : _.get(labels, [someFirstValue, someEnum], labels.default);`,
       errors: 1,
     },
+    // These three functions are valid for now but there should
+    // really be an option to flag this as a possible error,
+    // since no meaningful operations are being done there
+    // TODO: Add an option to flag this as a possible error
+    {
+      code: `
+        function getHandWithLog(rightHanded, rightHand, leftHand) {
+          console.log('Determining hand');
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
+        },
+      ],
+    },
+
+    // Function with unused variables trying to bypass the rule
+    // TODO: Add an option to flag this as a possible error
+    {
+      code: `
+        function chooseHandWithExtras(rightHanded, rightHand, leftHand) {
+          const extra = 'extra logic';
+          return rightHanded ? rightHand : leftHand;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
+        },
+      ],
+    },
+
+    // Function indirectly wrapping a ternary with unnecessary indirection
+    // TODO: Add an option to flag this as a possible error
+    {
+      code: `
+        function getChoice(optionA, optionB, condition) {
+          const result = condition ? optionA : optionB;
+          return result;
+        }
+      `,
+      errors: [
+        {
+          message:
+            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
+        },
+      ],
+    },
   ],
   invalid: [
     // more cases for completion's sake
@@ -157,53 +209,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       code: `
         function chooseHand(rightHanded, rightHand, leftHand) {
           return rightHanded ? rightHand : leftHand;
-        }
-      `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
-    },
-    // Function with a console log trying to appear meaningful
-    {
-      code: `
-        function getHandWithLog(rightHanded, rightHand, leftHand) {
-          console.log('Determining hand');
-          return rightHanded ? rightHand : leftHand;
-        }
-      `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
-    },
-
-    // Function with unused variables trying to bypass the rule
-    {
-      code: `
-        function chooseHandWithExtras(rightHanded, rightHand, leftHand) {
-          const extra = 'extra logic';
-          return rightHanded ? rightHand : leftHand;
-        }
-      `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
-    },
-
-    // Function indirectly wrapping a ternary with unnecessary indirection
-    {
-      code: `
-        function getChoice(optionA, optionB, condition) {
-          const result = condition ? optionA : optionB;
-          return result;
         }
       `,
       errors: [
