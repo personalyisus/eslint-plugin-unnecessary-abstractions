@@ -3,6 +3,32 @@ const errorMessages = {
     "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
 };
 
+/**
+ * Checks if an identifier name is part of the parameters
+ * of the function node that was provided
+ * @param {string} identifierName The identifier name to be checked
+ * @param {ASTNode} functionNode The node to be checked for it's parameters if its an appropriate node
+ * @returns {boolean} whether the identifier name has the same name as one of the parameters
+ */
+const checkIfLocalParam = (identifierName, functionNode) => {
+  if (!identifierName) {
+    throw Error("A valid identifierName was not provided");
+  }
+  const validFunctionNodeTypes = [
+    "FunctionExpression",
+    "ArrowFunctionExpression",
+    "FunctionDeclaration",
+  ];
+
+  if (!validFunctionNodeTypes.includes(functionNode.type)) {
+    throw Error("The checked node is not a valid function node");
+  }
+
+  return functionNode.params.some((param) => {
+    param.name === identifierName;
+  });
+};
+
 module.exports = {
   meta: {
     type: "suggestion",
@@ -28,7 +54,6 @@ module.exports = {
       const applicableParentTypes = [
         "FunctionExpression",
         "ArrowFunctionExpression",
-        "MethodDefinition",
         "FunctionDeclaration",
       ];
 
@@ -43,10 +68,20 @@ module.exports = {
         node.body[0].type === "ReturnStatement" &&
         node.body[0].argument.type === "ConditionalExpression"
       ) {
-        context.report({
-          node,
-          message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
-        });
+        const ternary = node.body[0].argument;
+        const ternaryFromArguments = [
+          ternary.test.name,
+          ternary.consequent.name,
+          ternary.alternate.name,
+        ].every((identifierName) =>
+          checkIfLocalParam(identifierName, node.parent),
+        );
+        if (ternaryFromArguments) {
+          context.report({
+            node,
+            message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
+          });
+        }
       }
     };
 
