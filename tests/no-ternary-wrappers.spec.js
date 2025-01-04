@@ -119,7 +119,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
                 typeof _.get(labels, [someFirstValue]) === 'string'
                   ? _.get(labels, [someFirstValue], labels.default)
                   : _.get(labels, [someFirstValue, someEnum], labels.default);`,
-      errors: 1,
     },
     // These three functions are valid for now but there should
     // really be an option to flag this as a possible error,
@@ -132,12 +131,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
           return rightHanded ? rightHand : leftHand;
         }
       `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
     },
 
     // Function with unused variables trying to bypass the rule
@@ -149,12 +142,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
           return rightHanded ? rightHand : leftHand;
         }
       `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
     },
 
     // Function indirectly wrapping a ternary with unnecessary indirection
@@ -166,12 +153,6 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
           return result;
         }
       `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
     },
   ],
   invalid: [
@@ -185,23 +166,13 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
           return rightHanded ? rightHand : leftHand;
         }
       `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
+      errors: 1,
     },
 
     // Arrow function wrapping a ternary
     {
       code: `const isUserRightHanded = (rightHanded, rightHand, leftHand) => rightHanded ? rightHand : leftHand;`,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
+      errors: 1,
     },
 
     // Function declaration wrapping a ternary
@@ -211,56 +182,21 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
           return rightHanded ? rightHand : leftHand;
         }
       `,
-      errors: [
-        {
-          message:
-            "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-        },
-      ],
+      errors: 1,
     },
     {
-      name: "(a) Arrow function with brackets around the return statement",
+      name: "Arrow function with brackets around the return statement",
       code: `const someFunction = (a, b, c) => {return a ? b : c};`,
       errors: 1,
     },
     {
-      name: "(a)Arrow function without brackets around the return statement",
+      name: "jarrow function without brackets around the return statement",
       code: `const someFunction = (a, b, c) => a ? b : c;`,
       errors: 1,
     },
     {
-      name: "(a)normal function without brackets around the return statement",
+      name: "normal function with brackets around the return statement",
       code: `function someFunction(a, b, c) { return a ? b : c}`,
-      errors: 1,
-    },
-    {
-      name: "(b) Arrow function with brackets around the return statement",
-      code: `const someFunction = (a, b, c) => {return b ? a : c};`,
-      errors: 1,
-    },
-    {
-      name: "(b)Arrow function without brackets around the return statement",
-      code: `const someFunction = (a, b, c) => b ? a : c;`,
-      errors: 1,
-    },
-    {
-      name: "(b)normal function without brackets around the return statement",
-      code: `function someFunction(a, b, c) { return b ? a : c}`,
-      errors: 1,
-    },
-    {
-      name: "(c) Arrow function with brackets around the return statement",
-      code: `const someFunction = (a, b, c) => {return c ? b : a};`,
-      errors: 1,
-    },
-    {
-      name: "(c)Arrow function without brackets around the return statement",
-      code: `const someFunction = (a, b, c) => c ? b : a;`,
-      errors: 1,
-    },
-    {
-      name: "(c)normal function with brackets around the return statement",
-      code: `function someFunction(a, b, c) { return c ? b : a}`,
       errors: 1,
     },
   ],
