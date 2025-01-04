@@ -27,7 +27,6 @@ const checkIfLocalParam = (identifierName, functionNode) => {
   return functionNode.params.some((param) => param.name === identifierName);
 };
 
-
 module.exports = {
   meta: {
     type: "suggestion",
@@ -50,10 +49,22 @@ module.exports = {
 
       let ternary;
 
+      // In case an arrow function returns a ternary directly
       if (functionNode.body.type === "ConditionalExpression") {
         ternary = functionNode.body;
       }
 
+      // In case an arrow function returns a sequence expression
+      // with a ternary at the end
+      if (
+        functionNode.body.type === "SequenceExpression" &&
+        functionNode.body.expressions.slice(-1)[0].type ===
+          "ConditionalExpression"
+      ) {
+        ternary = functionNode.body.expressions.slice(-1)[0];
+      }
+
+      // In case a function returns a block with a ternary
       if (functionNode.body.type === "BlockStatement") {
         const bodyElements = functionNode.body.body;
         if (
@@ -62,6 +73,22 @@ module.exports = {
           bodyElements[0].argument?.type === "ConditionalExpression"
         ) {
           ternary = bodyElements[0].argument;
+        }
+      }
+
+      if (functionNode.body.type === "BlockStatement") {
+        const bodyElements = functionNode.body.body;
+        if (
+          bodyElements.length === 1 &&
+          bodyElements[0].type === "ReturnStatement" &&
+          bodyElements[0].argument?.type === "SequenceExpression"
+        ) {
+          const [possibleTernary] =
+            bodyElements[0].argument.expressions.slice(-1);
+          ternary =
+            possibleTernary.type === "ConditionalExpression"
+              ? possibleTernary
+              : undefined;
         }
       }
 

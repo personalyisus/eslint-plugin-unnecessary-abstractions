@@ -199,5 +199,19 @@ ruleTester.run("no-ternary-wrappers", noUnnecessaryTernaryWrappers, {
       code: `function someFunction(a, b, c) { return a ? b : c}`,
       errors: 1,
     },
+    {
+      name: "Arrow function that returns a sequence expression",
+      code: `const sneaky = (a, b, c)=> (1, a ? b : c);`,
+      errors: 1,
+    },
+    {
+      name: "normal function that returns a squence expression",
+      code: `
+        function sneaky(test, left, right){
+          return 1,test ? left : right;
+        }
+      `,
+      errors: 1,
+    },
   ],
 });
