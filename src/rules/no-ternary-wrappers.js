@@ -1,6 +1,6 @@
 const errorMessages = {
   UNNECESSARY_TERNARY_WRAPPER:
-    "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
+    "Unnecessary abstraction: Use the ternary expression directly instead of wrapping it in a function.",
 };
 
 /**
