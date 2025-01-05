@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-unnecessary-abstractions",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "This is a simple ESLint plugin which includes rules to help detect the unnecessary use of certain code abstractions.",
   "exports": "./src/index.js",
   "keywords": [
