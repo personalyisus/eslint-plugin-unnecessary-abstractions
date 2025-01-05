@@ -1,61 +1,138 @@
-const arrowFunctionCheck = (node, context) => {
-  // If the only child of the arrow function
-  // is a ternary expression, report an error
-  if (node.body.type === "ConditionalExpression") {
-    context.report({
-      node,
-      message:
-        "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-    });
-  }
+const errorMessages = {
+  UNNECESSARY_TERNARY_WRAPPER:
+    "Unnecessary abstraction: Use the ternary expression directly instead of wrapping it in a function.",
 };
 
-const blockStatementCheck = (node, context) => {
-  const applicableParentTypes = [
+/**
+ * Checks if an identifier name is part of the parameters
+ * of the function node that was provided
+ * @param {string} identifierName The identifier name to be checked
+ * @param {ASTNode} functionNode The node to be checked for it's parameters if its an appropriate node
+ * @returns {boolean} whether the identifier name has the same name as one of the parameters
+ */
+const checkIfLocalParam = (identifierName, functionNode) => {
+  if (!identifierName) {
+    throw Error("A valid identifierName was not provided");
+  }
+  const validFunctionNodeTypes = [
     "FunctionExpression",
     "ArrowFunctionExpression",
-    "MethodDefinition",
     "FunctionDeclaration",
   ];
 
-  // If the node.parent.type isn't one that
-  // interests us, we don't need to do anything
-  if (!applicableParentTypes.includes(node.parent.type)) {
-    return;
+  if (!validFunctionNodeTypes.includes(functionNode.type)) {
+    throw Error("The checked node is not a valid function node");
   }
 
-  // If the only child of the function
-  // is a ternary expression, report an error
-  if (
-    node.body.length === 1 &&
-    node.body[0].type === "ReturnStatement" &&
-    node.body[0].argument.type === "ConditionalExpression"
-  ) {
-    context.report({
-      node,
-      message:
-        "This is an unnecessary abstraction. Prefer using the ternary expression directly instead of wrapping it in a function.",
-    });
-  }
+  return functionNode.params.some((param) => param.name === identifierName);
 };
 
 module.exports = {
   meta: {
     type: "suggestion",
     docs: {
-      description: "Point out unnecessary ternary wrappers",
+      description: "Points out unnecessary ternary wrappers",
       category: "Best Practices",
       recommended: true,
     },
   },
   create(context) {
+    // ContextObject
+
+    const info = {
+      significantOperations: false,
+    };
+
+    const arrowOrNormalFunctionCheck = (functionNode) => {
+      //If there are significant operations then we dont have to check anything
+      if (info.significantOperations) return;
+
+      let ternary;
+
+      // In case an arrow function returns a ternary directly
+      if (functionNode.body.type === "ConditionalExpression") {
+        ternary = functionNode.body;
+      }
+
+      // In case an arrow function returns a sequence expression
+      // with a ternary at the end
+      if (
+        functionNode.body.type === "SequenceExpression" &&
+        functionNode.body.expressions.slice(-1)[0].type ===
+          "ConditionalExpression"
+      ) {
+        ternary = functionNode.body.expressions.slice(-1)[0];
+      }
+
+      // In case a function returns a block with a ternary
+      if (functionNode.body.type === "BlockStatement") {
+        const bodyElements = functionNode.body.body;
+        if (
+          bodyElements.length === 1 &&
+          bodyElements[0].type === "ReturnStatement" &&
+          bodyElements[0].argument?.type === "ConditionalExpression"
+        ) {
+          ternary = bodyElements[0].argument;
+        }
+      }
+
+      if (functionNode.body.type === "BlockStatement") {
+        const bodyElements = functionNode.body.body;
+        if (
+          bodyElements.length === 1 &&
+          bodyElements[0].type === "ReturnStatement" &&
+          bodyElements[0].argument?.type === "SequenceExpression"
+        ) {
+          const [possibleTernary] =
+            bodyElements[0].argument.expressions.slice(-1);
+          ternary =
+            possibleTernary.type === "ConditionalExpression"
+              ? possibleTernary
+              : undefined;
+        }
+      }
+
+      if (ternary) {
+        const onlyIdentifiersInTernary = [
+          ternary.test,
+          ternary.consequent,
+          ternary.alternate,
+        ].every((x) => x.type === "Identifier");
+
+        if (!onlyIdentifiersInTernary) return;
+
+        const ternaryFromArguments = [
+          ternary.test.name,
+          ternary.consequent.name,
+          ternary.alternate.name,
+        ].every((identifierName) =>
+          checkIfLocalParam(identifierName, functionNode),
+        );
+        if (ternaryFromArguments) {
+          context.report({
+            node: functionNode,
+            message: errorMessages.UNNECESSARY_TERNARY_WRAPPER,
+          });
+        }
+      }
+    };
+
+    //Yisustodo: use this method to set info.significantOperations
+    //to true if there are significant operations
+    //like mutations or some assignments, side effects, etc
+
+    /**
+     * Checks if there are any significant operations
+     * like assignments, calls, or other transformations
+     * done on the arguments of the ternary
+     * @returns {boolean} whether or not there are any significant operations
+     * */
+    const checkIfSignificantOperations = () => {};
+
     return {
-      BlockStatement(node) {
-        blockStatementCheck(node, context);
-      },
-      ArrowFunctionExpression(node) {
-        arrowFunctionCheck(node, context);
-      },
+      "ArrowFunctionExpression:exit": arrowOrNormalFunctionCheck,
+      "FunctionExpression:exit": arrowOrNormalFunctionCheck,
+      "FunctionDeclaration:exit": arrowOrNormalFunctionCheck,
     };
   },
 };

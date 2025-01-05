@@ -1,25 +1,35 @@
 # eslint-plugin-unnecessary-abstractions
 
-This is a simple ESLint plugin which includes rules to help detect the unnecessary use of certain code abstractions.
+This ESLint plugin provides rules to detect and prevent some unnecessary code abstractions.
 ## Rules
 ### no-ternary-wrappers
 
+
+Creating functions to abstract ternaries used only once or twice is considered bad practice. 
+
+Rather than reducing or effectively hiding complexity, this adds unnecessary overhead and can result in less maintainable code.
+
 ```javascript
-// Incorrect ❌
-function isUserRightHanded(rightHanded, rightHand, leftHand) {
-  return rightHanded ? rightHand : leftHand; // Don't create a function just to wrap a ternary
+// Incorrect: Don't create a function just to wrap a ternary ❌  
+function getMainHand(userIsRightHanded, rightHand, leftHand) {
+  return userIsRightHanded ? rightHand : leftHand;
+  // Unnecessary abstraction:
+  // Use the ternary expression directly
+  // instead of wrapping it in a function.
 }
 
-useHand(isUserRightHanded(isRightHandedUser, user.rightHand, user.leftHand));
+const mainHand = getMainHand(userIsRightHanded, user.rightHand, user.leftHand);
 
-// Correct ✅ 
-useHand(isRightHandedUser ? user.rightHand : user.leftHand); // Use the ternary directly
+------------------------------------
+
+// Correct: Use the ternary directly ✅ 
+const mainHand = userIsRightHanded ? user.rightHand : user.leftHand;
 
 ```
 
 ## Installation
 
-Install it as part of your devDependencies
+Install it as part of your `devDependencies`
 ```sh
 npm i --save-dev eslint-plugin-unnecessary-abstractions
 ```
@@ -31,7 +41,9 @@ Import the plugin and add it as a configuration object to the array of configura
 import unnecessaryAbstractions from "eslint-plugin-unnecessary-abstractions";
 
 export default [
-  // ... other configurations
+  {
+    // ... other configurations
+  },
   {
     plugins: { "unnecessary-abstractions": unnecessaryAbstractions },
     rules: {
@@ -49,11 +61,11 @@ Add `"unnecessary-abstractions"` to the plugins array of your ESLint configurati
 // .eslintrc.js
 
 module.exports = {
-  // Add the plugin to the list
+  // Add the plugin to the plugins array
   plugins: [/* ... */ , "unnecessary-abstractions"],
   rules: {
     // Add the rules you want
-    "unnecessary-abstractions/no-ternary-wrappers": "warn" // or "error
+    "unnecessary-abstractions/no-ternary-wrappers": "warn" // or "error"
   },
 };
 
